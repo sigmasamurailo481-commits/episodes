@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mera Episode Ghar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Hanken+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@500&family=Noto+Sans+Devanagari:wght@400;700&display=swap">
+<style>
+/* Layout: upar channel ka naam + search. Neeche ek taraf player, doosri taraf episodes ki list.
+   Phone par player upar, list uske neeche. */
+:root {
+  --bg: #eef1f0;
+  --surface: #ffffff;
+  --fg: #14201f;
+  --muted: #566866;
+  --line: #d3dbd9;
+  --accent: #0f6b5c;
+  --accent-fg: #ffffff;
+  --hot: #e0a21b;
+  --screen: #0b1211;
+  --f-display: "Bricolage Grotesque", "Noto Sans Devanagari", system-ui, sans-serif;
+  --f-body: "Hanken Grotesk", "Noto Sans Devanagari", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1615; --surface: #162120; --fg: #e5eeec; --muted: #92a5a2;
+    --line: #263533; --accent: #4fc3a8; --accent-fg: #07201a; --hot: #f2b53c;
+    --screen: #050909; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1615; --surface: #162120; --fg: #e5eeec; --muted: #92a5a2;
+  --line: #263533; --accent: #4fc3a8; --accent-fg: #07201a; --hot: #f2b53c;
+  --screen: #050909; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--f-body); font-size: 16px; line-height: 1.5;
+  padding-inline: 16px; padding-block: 16px 40px;
+}
+.wrap { max-width: 1120px; margin-inline: auto; }
+header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; padding-block: 8px 20px; }
+.brand { flex: 1 1 260px; min-width: 0; }
+.brand h1 { font-family: var(--f-display); font-weight: 800; font-size: clamp(1.7rem, 5vw, 2.5rem); line-height: 1.05; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+.brand p { margin: 6px 0 0; color: var(--muted); max-width: 52ch; }
+.tools { display: flex; flex-wrap: wrap; gap: 8px; flex: 1 1 300px; justify-content: flex-end; }
+input[type="search"], select {
+  font: inherit; color: var(--fg); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; min-height: 44px; min-width: 0;
+}
+input[type="search"] { flex: 1 1 180px; }
+button { font: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--hot); outline-offset: 2px; }
+main { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.stage { position: sticky; top: 12px; min-width: 0; }
+.screen { aspect-ratio: 16 / 9; max-width: 100%; background: var(--screen); border-radius: 10px; overflow: hidden; display: grid; place-items: center; position: relative; }
+.screen iframe, .screen video { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #000; }
+.empty { padding: 20px; color: #cfdad8; text-align: center; max-width: 42ch; }
+.empty strong { display: block; font-family: var(--f-display); font-size: 1.2rem; color: #fff; margin-bottom: 6px; }
+.empty a { color: var(--hot); }
+.meta { padding-top: 14px; }
+.meta .tag { font-family: var(--f-mono); font-size: 0.8rem; color: var(--accent); letter-spacing: 0.06em; text-transform: uppercase; }
+.meta h2 { font-family: var(--f-display); font-size: clamp(1.3rem, 3.4vw, 1.8rem); line-height: 1.15; margin: 4px 0 8px; text-wrap: balance; }
+.meta p { margin: 0; color: var(--muted); max-width: 65ch; }
+.nav { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.nav button { background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 16px; min-height: 44px; }
+.nav button:disabled { opacity: 0.4; cursor: default; }
+.nav button.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 700; }
+.list { min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.list h3 { margin: 0; padding: 12px 14px; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 8px; }
+ol { list-style: none; margin: 0; padding: 0; }
+.ep { display: grid; grid-template-columns: 3.2rem minmax(0, 1fr) auto; gap: 10px; align-items: center; width: 100%; text-align: left; background: none; color: var(--fg); border: 0; border-bottom: 1px solid var(--line); padding: 12px 14px; min-height: 56px; }
+li:last-child .ep { border-bottom: 0; }
+.ep:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.ep .no { font-family: var(--f-mono); font-size: 0.85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ep .t { min-width: 0; overflow-wrap: anywhere; font-weight: 500; }
+.ep .t small { display: block; color: var(--muted); font-weight: 400; font-size: 0.8rem; }
+.ep .dur { font-family: var(--f-mono); font-size: 0.78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ep.on { background: color-mix(in srgb, var(--hot) 16%, transparent); box-shadow: inset 4px 0 0 var(--hot); }
+.ep.on .no { color: var(--fg); font-weight: 700; }
+.ep.seen .t::after { content: " ✓"; color: var(--accent); font-weight: 700; }
+.none { padding: 20px 14px; color: var(--muted); }
+footer { margin-top: 32px; color: var(--muted); font-size: 0.85rem; }
+@media (max-width: 800px) {
+  main { grid-template-columns: minmax(0, 1fr); }
+  .stage { position: static; }
+  .tools { justify-content: stretch; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ep { transition: background 0.15s; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <h1 id="siteName"></h1>
+      <p id="siteTag"></p>
+    </div>
+    <div class="tools">
+      <label for="q" hidden>Episode dhoondho</label>
+      <input id="q" type="search" placeholder="Episode dhoondho">
+      <label for="season" hidden>Season</label>
+      <select id="season"></select>
+    </div>
+  </header>
+
+  <main>
+    <section class="stage" aria-live="polite">
+      <div class="screen" id="screen"></div>
+      <div class="meta">
+        <div class="tag" id="mTag"></div>
+        <h2 id="mTitle"></h2>
+        <p id="mDesc"></p>
+        <div class="nav">
+          <button id="prev" type="button">← Pichla</button>
+          <button id="next" type="button" class="primary">Agla episode →</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="list">
+      <h3><span>Saare episodes</span><span id="count"></span></h3>
+      <ol id="eps"></ol>
+    </section>
+  </main>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+/* ================== YAHAN APNA CONTENT BADLO ================== */
+var SITE = {
+  name: "Mera Episode Ghar",
+  tagline: "Har hafte naya episode. Seedha yahin dekho.",
+  footer: "© 2026 Mera Episode Ghar. Saare videos mere apne hain."
+};
+
+/* Naya episode jodne ke liye ek { ... } block copy karke list mein daalo.
+   yt   = YouTube video ka ID. Link https://youtu.be/AbC123xyz ho to ID "AbC123xyz" hai.
+   file = agar video khud host kiya hai (jaise "videos/ep1.mp4"), yt khaali chhod do.
+   Jab tak yt ya file nahi daaloge, player mein "video ID daalo" wala message dikhega. */
+var EPISODES = [
+  { season: 1, title: "Shuruaat: pehla episode",       desc: "Is episode mein hum series ka parichay dete hain aur batate hain ki aage kya aane wala hai.", date: "2026-09-01", duration: "12:30", yt: "", file: "" },
+  { season: 1, title: "Kahani mein mod",               desc: "Kirdaar ek anjaan sheher pahunchte hain aur pehli mushkil saamne aati hai.",               date: "2026-09-08", duration: "14:05", yt: "", file: "" },
+  { season: 1, title: "Raaz khulne lage",              desc: "Purane kisse ki kadiyan judne lagti hain.",                                                 date: "2026-09-15", duration: "13:48", yt: "", file: "" },
+  { season: 1, title: "Aakhri mulakaat",               desc: "Season 1 ka antim episode.",                                                                date: "2026-09-22", duration: "18:20", yt: "", file: "" },
+  { season: 2, title: "Naya safar",                    desc: "Season 2 yahan se shuru hota hai.",                                                         date: "2026-10-06", duration: "15:10", yt: "", file: "" },
+  { season: 2, title: "Behind the scenes",             desc: "Shooting ke dauran ke kuch pal.",                                                           date: "2026-10-09", duration: "09:42", yt: "", file: "" }
+];
+/* ============================================================== */
+
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var current = 0, seen = {};
+  try { seen = JSON.parse(localStorage.getItem("seen-eps") || "{}"); } catch (e) {}
+
+  EPISODES.forEach(function (e, i) { e.n = i + 1; });
+
+  $("siteName").textContent = SITE.name;
+  $("siteTag").textContent = SITE.tagline;
+  $("foot").textContent = SITE.footer;
+  document.title = SITE.name;
+
+  /* Season dropdown */
+  var seasons = [];
+  EPISODES.forEach(function (e) { if (seasons.indexOf(e.season) < 0) seasons.push(e.season); });
+  var sel = $("season");
+  var all = document.createElement("option");
+  all.value = ""; all.textContent = "Saare seasons";
+  sel.appendChild(all);
+  seasons.forEach(function (s) {
+    var o = document.createElement("option");
+    o.value = s; o.textContent = "Season " + s;
+    sel.appendChild(o);
+  });
+
+  function pad(n) { return n < 10 ? "0" + n : "" + n; }
+
+  function fmtDate(d) {
+    try { return new Date(d + "T00:00:00").toLocaleDateString("hi-IN", { day: "numeric", month: "long", year: "numeric" }); }
+    catch (e) { return d; }
+  }
+
+  function renderList() {
+    var q = $("q").value.trim().toLowerCase();
+    var s = sel.value;
+    var ol = $("eps");
+    ol.textContent = "";
+    var shown = 0;
+    EPISODES.forEach(function (e, i) {
+      if (s && String(e.season) !== s) return;
+      if (q && (e.title + " " + e.desc).toLowerCase().indexOf(q) < 0) return;
+      shown++;
+      var li = document.createElement("li");
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "ep" + (i === current ? " on" : "") + (seen[e.n] ? " seen" : "");
+      var no = document.createElement("span"); no.className = "no"; no.textContent = "S" + e.season + " E" + pad(e.n);
+      var t = document.createElement("span"); t.className = "t"; t.textContent = e.title;
+      var sm = document.createElement("small"); sm.textContent = fmtDate(e.date); t.appendChild(sm);
+      var d = document.createElement("span"); d.className = "dur"; d.textContent = e.duration;
+      b.appendChild(no); b.appendChild(t); b.appendChild(d);
+      b.addEventListener("click", function () { play(i); });
+      li.appendChild(b);
+      ol.appendChild(li);
+    });
+    if (!shown) {
+      var p = document.createElement("p");
+      p.className = "none";
+      p.textContent = "Koi episode nahi mila. Doosra shabd try karo.";
+      ol.appendChild(p);
+    }
+    $("count").textContent = shown + " / " + EPISODES.length;
+  }
+
+  function renderScreen(e) {
+    var sc = $("screen");
+    sc.textContent = "";
+    if (e.yt) {
+      var f = document.createElement("iframe");
+      f.src = "https://www.youtube-nocookie.com/embed/" + encodeURIComponent(e.yt) + "?rel=0";
+      f.title = e.title;
+      f.allow = "accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen";
+      f.allowFullscreen = true;
+      f.loading = "lazy";
+      sc.appendChild(f);
+    } else if (e.file) {
+      var v = document.createElement("video");
+      v.src = e.file; v.controls = true; v.playsInline = true; v.preload = "metadata";
+      sc.appendChild(v);
+    } else {
+      var d = document.createElement("div");
+      d.className = "empty";
+      var st = document.createElement("strong"); st.textContent = "Is episode ka video abhi jodna baaki hai";
+      var tx = document.createElement("span");
+      tx.textContent = "index.html kholo, is episode ki line mein yt: \"\" ke andar YouTube video ka ID daalo, aur save karo.";
+      d.appendChild(st); d.appendChild(tx);
+      sc.appendChild(d);
+    }
+  }
+
+  function play(i, fromHash) {
+    if (i < 0 || i >= EPISODES.length) return;
+    current = i;
+    var e = EPISODES[i];
+    renderScreen(e);
+    $("mTag").textContent = "Season " + e.season + " · Episode " + e.n + " · " + e.duration;
+    $("mTitle").textContent = e.title;
+    $("mDesc").textContent = e.desc;
+    $("prev").disabled = i === 0;
+    $("next").disabled = i === EPISODES.length - 1;
+    seen[e.n] = 1;
+    try { localStorage.setItem("seen-eps", JSON.stringify(seen)); } catch (x) {}
+    try { history.replaceState(null, "", "#ep" + e.n); } catch (x) {}
+    renderList();
+    if (!fromHash && window.matchMedia("(max-width: 800px)").matches) {
+      $("screen").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  $("prev").addEventListener("click", function () { play(current - 1); });
+  $("next").addEventListener("click", function () { play(current + 1); });
+  $("q").addEventListener("input", renderList);
+  sel.addEventListener("change", renderList);
+
+  var m = /^#ep(\d+)$/.exec(location.hash);
+  var start = m ? Math.min(Math.max(parseInt(m[1], 10) - 1, 0), EPISODES.length - 1) : 0;
+  play(start, true);
+})();
+</script>
+</body>
+</html>
